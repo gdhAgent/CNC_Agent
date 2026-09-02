@@ -16,6 +16,8 @@ services:
       TZ: ${TZ:-Asia/Shanghai}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      # 空数据卷首次初始化时自动建库并导入 db/cnc_kb.sql（schema + 演示主数据）
+      - ./db/cnc_kb.sql:/docker-entrypoint-initdb.d/10-cnc_kb.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d cnc_kb"]
       interval: 5s
@@ -35,7 +37,7 @@ services:
       PG_HOST: db            # 容器内数据库主机 = 服务名
       APP_ENV: ${APP_ENV:-prod}
       WORKERS: ${WORKERS:-2}
-      RUN_SEEDS: ${RUN_SEEDS:-0}   # 默认只迁移；=1 时首次灌演示种子（幂等）
+      RUN_SEEDS: ${RUN_SEEDS:-0}   # =1 时额外创建演示登录账号（seed_users，幂等）
     depends_on:
       db:
         condition: service_healthy

@@ -54,8 +54,7 @@ CNC_Agent/
 │  ├─ api/                  health / query / knowledge / feedback / trace / users / …
 │  └─ schemas/              请求 / 响应模型
 ├─ db/
-│  ├─ migrations/           001_extensions.sql … 007_role_permissions_seed.sql（幂等）
-│  └─ migrate.py            幂等迁移执行器（自动建库，--status / --reset）
+│  └─ cnc_kb.sql            单文件：建库建表 + 演示主数据（psql -f 导入即用）
 ├─ scripts/                 数据种子与工具（load_alarms / seed_users / vectorize_* …）
 ├─ data/                    报警码种子数据（JSONL，不含任何厂商原始手册）
 ├─ assets/screenshots/      界面截图（演示后补充）
@@ -77,24 +76,24 @@ docker compose --env-file .env.docker up -d --build
 curl http://localhost:8000/health
 ```
 
-- 首次默认只建 schema（表 + 基础数据）。想顺带灌演示报警与演示账号，把 `.env.docker` 的 `RUN_SEEDS` 设为 `1` 再起。
+- 首次启动（空数据卷）会自动用 `db/cnc_kb.sql` 建库并导入演示主数据（字典 / 报警 / 机台 / 工单）。默认不含登录账号，需要演示账号就把 `.env.docker` 的 `RUN_SEEDS` 设为 `1` 再起。
 - 详细命令、登录账号与停止方式见 [`DOCKER.md`](DOCKER.md)。
 
 ### 方式二：本地运行（Linux / macOS）
 
-依赖：Python 3.12、PostgreSQL 17 + pgvector（扩展见 `db/migrations/001_extensions.sql`）。
+依赖：Python 3.12、PostgreSQL 17 + pgvector（`db/cnc_kb.sql` 开头会自动建所需扩展）。
 
 ```bash
 cp .env.example .env                        # 填 PG_SUPERPASSWORD / DEEPSEEK_API_KEY / SILICONFLOW_API_KEY
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-python db/migrate.py                        # 首次自动建库 cnc_kb
-python scripts/load_alarms.py               # 报警码种子
-python scripts/vectorize_alarms.py          # 向量化（需 SiliconFlow Key，可后续再跑）
-python scripts/seed_users.py                # 演示账号
-python scripts/seed_machines.py --clear && python scripts/seed_maintenance.py --clear
-python scripts/vectorize_maintenance.py
+# 建库并导入（cnc_kb.sql = 建表 + 演示主数据，库需先创建）
+createdb cnc_kb
+psql -U postgres -d cnc_kb -f db/cnc_kb.sql
+
+# （可选）创建演示登录账号
+python scripts/seed_users.py
 
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```

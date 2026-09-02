@@ -22,30 +22,25 @@ docker compose --env-file .env.docker logs -f backend
 curl http://localhost:8000/health                    # {"status":"ok", ...各探针}
 curl http://localhost:8000/
 
-# 迁移是否已应用（应列出 001..007）
-docker compose --env-file .env.docker exec db psql -U postgres -d cnc_kb \
-  -c "select filename from log.schema_migrations order by id"
+# 演示主数据是否已导入（应分别 ≈ 25 / 30 / 200）
+docker compose --env-file .env.docker exec db psql -U postgres -d cnc_kb -t -c \
+  "select 'alarms='||(select count(*) from kb.alarms)||' machines='||(select count(*) from ops.machines)||' workorders='||(select count(*) from ops.maintenance_logs)"
 ```
 
 ## 登录账号（重要）
 
-**schema 迁移里没有用户账号行**（006 只建 `ops.users` 表，007 只种角色权限）。
-登录账号由 `scripts/seed_users.py` 灌入。两种方式：
+`db/cnc_kb.sql` 含演示主数据、**不含登录账号**（账号由 `scripts/seed_users.py` 创建，避免仓库携带任何凭据）。两种方式：
 
-- 首次启动时想自动带出演示账号：`up` 前把 `.env.docker` 里 `RUN_SEEDS=1`；
+- `up` 前把 `.env.docker` 里 `RUN_SEEDS=1`，首次启动自动创建演示账号；
 - 或对已在跑的栈手动执行一次（幂等，可重复）：
   ```bash
   docker compose --env-file .env.docker exec backend python scripts/seed_users.py
   ```
 
-## 演示数据（可选）
+## 演示数据
 
-`RUN_SEEDS=1` 时会顺带跑 `load_alarms.py` 灌入演示报警（来自 `data/alarm_seed_*.jsonl`）。
-向量化(embedding 列)不自动执行；需要时手动：
-```bash
-docker compose --env-file .env.docker exec backend python scripts/vectorize_alarms.py
-```
-（需 `.env.docker` 里填好 `SILICONFLOW_API_KEY`。）
+首次启动（空数据卷）时 `db/cnc_kb.sql` 已被 db 服务自动导入，包含报警码 / 机台 / 工单 / 术语词典 / 基础数据 / 角色权限及向量（开箱即可检索）。
+如需重建到全新状态：`docker compose --env-file .env.docker down -v` 后再 `up`（会清空并重新导入）。
 
 ## 停止 / 清理
 
