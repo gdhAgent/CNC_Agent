@@ -1,0 +1,14 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]
+ignore = ["B008"]  # FastAPI Depends() 调用模式会被 B008 误报
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501", "E402"]  # E501 字符串长度不卡；E402 sys.path hack 必须先于 import
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

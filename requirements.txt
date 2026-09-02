@@ -1,0 +1,41 @@
+# ===== Web 框架 =====
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+
+# ===== 数据 / 配置 =====
+pydantic==2.13.5
+pydantic-settings==2.15.0
+psycopg[binary]==3.3.4
+psycopg-pool==3.3.1
+pgvector==0.5.0
+
+# ===== 文本处理 / 检索 =====
+jieba==0.42.1
+
+# ===== 数值计算（向量可视化 PCA 投影，向量总览重档用） =====
+numpy==2.5.2
+
+# ===== 外部 API 客户端 =====
+httpx==0.28.1
+tenacity==9.1.4
+
+# ===== 文件 / 表单 =====
+openpyxl==3.1.5
+pdfplumber==0.11.10
+python-multipart==0.0.32
+
+# ===== JSON 序列化（FastAPI 默认回退到 orjson） =====
+orjson==3.12.0
+
+# ===== 环境读取（migrate.py 用了 pydantic-settings 同款的 dotenv_values） =====
+python-dotenv==1.2.3
+
+# ===== 测试 =====
+pytest==9.1.1
+pytest-asyncio==1.4.0
+
+# ===== Lint =====
+ruff==0.16.5
+
+# ===== V1.5 鉴权（JWT HS256 + PBKDF2-SHA256 密码哈希）=====
+pyjwt==2.10.1

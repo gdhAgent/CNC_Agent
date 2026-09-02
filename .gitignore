@@ -1,0 +1,65 @@
+# ============ 密钥与敏感文件 —— 绝对不能提交 ============
+.env
+.env.*
+!.env.example
+!.env.docker.example
+*.pem
+*.key
+pgpass.conf
+
+# ============ 原始资料（版权 + 体积） ============
+data/raw/
+data/uploaded/          # W3.10 用户上传的待解析文件（处理后源文件留存）
+*.pdf
+secrets/
+
+# ============ Python 运行产物 ============
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+*.egg-info/
+build/
+dist/
+
+# ============ 前端 ============
+node_modules/
+dist/
+.vite/
+
+# ============ IDE ============
+.idea/
+.vscode/
+.claude/
+*.swp
+*.swo
+
+# ============ 运行产物 ============
+logs/
+*.log
+eval/results/*.json
+debug_*.py
+
+# ============ 系统 ============
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============ 公开仓库不含的本地开发内容（保留在本机，不入库） ============
+docs/
+tests/
+eval/
+CLAUDE.md
+pytest.ini
+scripts/run_dev.py
+scripts/build_tsv.py
+scripts/tune_threshold.py
+scripts/load_chunks.py
+scripts/regression/

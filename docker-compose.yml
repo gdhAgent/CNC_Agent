@@ -1,0 +1,56 @@
+# CNC_Agent (FastAPI) 独立自包含栈 —— DB(pgvector)+backend 一键起。
+# 用法：
+#   cp .env.docker.example .env.docker        # 填真密钥
+#   docker compose --env-file .env.docker up -d --build
+#
+# 与本仓库 .env（开发用，PG_HOST=127.0.0.1）隔离：compose 一律用 .env.docker 做
+# 变量插值(数据库密码等)并注入容器(env_file)。.env.docker 已被 gitignore。
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PG_DB:-cnc_kb}
+      POSTGRES_USER: ${PG_SUPERUSER:-postgres}
+      POSTGRES_PASSWORD: ${PG_SUPERPASSWORD:?PG_SUPERPASSWORD 缺失：先 cp .env.docker.example .env.docker}
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cnc_kb"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
+  backend:
+    image: ${REGISTRY:-}cnc-kb-python-backend:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env.docker
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      PG_HOST: db            # 容器内数据库主机 = 服务名
+      APP_ENV: ${APP_ENV:-prod}
+      WORKERS: ${WORKERS:-2}
+      RUN_SEEDS: ${RUN_SEEDS:-0}   # 默认只迁移；=1 时首次灌演示种子（幂等）
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - uploads:/app/data/uploaded   # 上传文件持久化
+    healthcheck:
+      # 打廉价 "/" 路由做存活（避免每次探测触发 LLM/embedding 调用）
+      test: ["CMD", "python", "-c", "import urllib.request as u;u.urlopen('http://127.0.0.1:8000/',timeout=3).read()"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  pgdata:
+  uploads:
