@@ -105,7 +105,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 ## 前端
 
-UI 是独立的 Vue3 + Vite 项目（`CNC_Web_Agent`，将与本项目同期开源）。在前端仓库根目录：
+UI 是独立的 Vue3 + Vite 项目：🔗 [`CNC_Web_Agent`](https://github.com/gdhAgent/CNC_Web_Agent)（与 Python / .NET 两个后端均可对接）。在其仓库根目录：
 
 ```bash
 npm install
